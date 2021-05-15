@@ -1958,11 +1958,11 @@ function Index(_ref) {
   var social = _ref.social;
 
   var _useForm = (0,_inertiajs_inertia_react__WEBPACK_IMPORTED_MODULE_3__.useForm)({
-    facebook: social.facebook,
-    google: social.google,
-    twitter: social.twitter,
-    linkedin: social.linkedin,
-    instagram: social.instagram
+    facebook: social && social.facebook ? social.facebook : '',
+    google: social && social.google ? social.google : '',
+    twitter: social && social.twitter ? social.twitter : '',
+    linkedin: social && social.linkedin ? social.linkedin : '',
+    instagram: social && social.instagram ? social.instagram : ''
   }),
       data = _useForm.data,
       setData = _useForm.setData;

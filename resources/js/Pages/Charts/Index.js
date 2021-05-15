@@ -8,11 +8,11 @@ import { Chart } from 'react-google-charts'
 
 export default function Index ({ social }) {
 	const { data, setData } = useForm({
-		facebook: social.facebook,
-		google: social.google,
-		twitter: social.twitter,
-		linkedin: social.linkedin,
-		instagram: social.instagram
+		facebook: (social && social.facebook) ? social.facebook : '',
+		google: (social && social.google) ? social.google : '',
+		twitter: (social && social.twitter) ? social.twitter : '',
+		linkedin: (social && social.linkedin) ? social.linkedin : '',
+		instagram: (social && social.instagram) ? social.instagram : ''
 	})
 
 	const ChartCustom = (props) => {

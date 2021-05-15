@@ -15,11 +15,11 @@ class CreateSocialsTable extends Migration
     {
         Schema::create('socials', function (Blueprint $table) {
             $table->id();
-            $table->tinyInteger('facebook', false, true);
-            $table->tinyInteger('instagram', false, true);
-            $table->tinyInteger('linkedin', false, true);
-            $table->tinyInteger('twitter', false, true);
-            $table->tinyInteger('google', false, true);
+            $table->tinyInteger('facebook', false, true)->nullable();
+            $table->tinyInteger('instagram', false, true)->nullable();
+            $table->tinyInteger('linkedin', false, true)->nullable();
+            $table->tinyInteger('twitter', false, true)->nullable();
+            $table->tinyInteger('google', false, true)->nullable();
             $table->timestamps();
         });
     }
