@@ -11,19 +11,41 @@ class ChartsController extends Controller
 {
     public function index()
     {
-        $social = Social::first();
-        return Inertia::render('Charts/Index', ['social' => $social]);
+        $name = Request::old('name', '');
+        $value = Request::old('value', '');
+
+        $socials = Social::all();
+        return Inertia::render('Charts/Index', ['socials' => $socials, 'inputs' => ['name' => $name, 'value' => $value]]);
     }
 
     public function save()
     {
-        $socialCount = Social::count();
-        if ($socialCount === 0) {
-            Social::create(Request::only('facebook', 'google', 'instagram', 'linkedin', 'twitter'));
-        } else {
-            $social = Social::first();
-            $social->update(Request::only('facebook', 'google', 'instagram', 'linkedin', 'twitter'));
+        $data = Request::all();
+
+        foreach ($data as $name => $value) {;
+            Social::where('name', $name)->update(['value' => $value]);
         }
+
+        return Redirect::route('charts');
+    }
+
+    public function createSource()
+    {
+        Request::validate([
+            'name' => ['required', 'max:50'],
+            'value' => ['required', 'numeric'],
+        ]);
+
+        Social::create(
+            Request::only('name', 'value')
+        );
+
+        return Redirect::route('charts');
+    }
+
+    public function deleteSource($id) {
+
+        Social::find($id)->delete();
 
         return Redirect::route('charts');
     }

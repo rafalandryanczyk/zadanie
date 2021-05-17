@@ -16,3 +16,5 @@ use App\Http\Controllers\ChartsController;
 
 Route::get('/', [ChartsController::class, 'index'])->name('charts');
 Route::post('/charts/save', [ChartsController::class, 'save']);
+Route::post('/charts/createSource', [ChartsController::class, 'createSource']);
+Route::delete('/charts/deleteSource/{id}', [ChartsController::class, 'deleteSource']);

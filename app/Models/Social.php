@@ -12,11 +12,8 @@ class Social extends Model {
      * @var array
      */
     protected $fillable = [
-        'facebook',
-        'instagram',
-        'linkedin',
-        'twitter',
-        'google',
+        'name',
+        'value',
     ];
 
 }

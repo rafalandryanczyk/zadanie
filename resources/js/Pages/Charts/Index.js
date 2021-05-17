@@ -1,42 +1,110 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Layout from '../Layout'
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
+import Modal from 'react-bootstrap/Modal'
 import { Inertia } from '@inertiajs/inertia'
-import { useForm } from '@inertiajs/inertia-react'
+import { useForm, usePage } from '@inertiajs/inertia-react'
 import { Chart } from 'react-google-charts'
 
-export default function Index ({ social }) {
-	const { data, setData } = useForm({
-		facebook: (social && social.facebook) ? social.facebook : '',
-		google: (social && social.google) ? social.google : '',
-		twitter: (social && social.twitter) ? social.twitter : '',
-		linkedin: (social && social.linkedin) ? social.linkedin : '',
-		instagram: (social && social.instagram) ? social.instagram : ''
-	})
+export default function Index () {
+	const { errors, inputs, socials } = usePage().props
+	const socialsForm = Object.assign({}, ...Object.entries({ ...socials }).map(([k, item]) => ({ [item.name]: item.value })))
+	const { data, setData } = useForm(socialsForm)
 
-	const ChartCustom = (props) => {
-		const data = [
-			['Social', 'Value'],
-			['Facebook', parseInt(props.facebook)],
-			['Google', parseInt(props.google)],
-			['Twitter', parseInt(props.twitter)],
-			['Instagram', parseInt(props.instagram)],
-			['Linkedin', parseInt(props.linkedin)]
-		]
+	const ModalCustom = (props) => {
+		const { validation, inputs } = props
+		const [show, setShow] = useState(false)
+		const [clickedClose, setClickedClose] = useState(false)
+
+		const handleClose = () => {
+			setClickedClose(true)
+			setShow(false)
+		}
+		const handleShow = () => setShow(true)
+		const { data, setData } = useForm({
+			name: inputs.name,
+			value: inputs.value
+		})
+
+		function createSource (e) {
+			e.preventDefault()
+			Inertia.post('/charts/createSource', data)
+		}
+
+		useEffect(() => {
+			if ((validation.name !== undefined || validation.value !== undefined) && !clickedClose) {
+				setShow(true)
+			}
+		})
+
+		const buttonCss = {
+			margin: '10px 0px'
+		}
 
 		return (
-			<Chart
-				width={'inherit'}
-				height={'400px'}
-				chartType={'PieChart'}
-				loader={<div>Loading Data...</div>}
-				data={data}
-				options={{ title: 'Wykres' }}
-				rootProps={{ 'data-testid': '1' }}
-			/>
+			<div>
+				<Button style={buttonCss} variant="primary" onClick={handleShow}>
+					Dodaj źródło danych
+				</Button>
+				<Modal show={show} onHide={handleClose}>
+					<Modal.Header closeButton>
+						<Modal.Title>Dodaj źródło danych</Modal.Title>
+					</Modal.Header>
+					<Modal.Body>
+						<Form onSubmit={createSource}>
+							<Form.Group controlId="formSource">
+								<Form.Label>Źródło danych</Form.Label>
+								<Form.Control type="text" value={data.name} onChange={e => setData('name', e.target.value)}/>
+								{validation.name}
+							</Form.Group>
+							<Form.Group controlId="formValue">
+								<Form.Label>Wartość</Form.Label>
+								<Form.Control type="number" value={data.value} onChange={e => setData('value', e.target.value)} />
+								{validation.value}
+							</Form.Group>
+						</Form>
+					</Modal.Body>
+
+					<Modal.Footer>
+						<Button variant="secondary" onClick={handleClose}>
+							Zamknij
+						</Button>
+						<Button variant="primary" onClick={createSource}>
+							Zapisz
+						</Button>
+					</Modal.Footer>
+				</Modal>
+			</div>
 		)
 	}
+
+	function deleteSource (e, id) {
+		e.preventDefault()
+		Inertia.delete('/charts/deleteSource/' + id)
+	}
+
+	const deleteButtonStyle = {
+		'margin-left': '10px'
+	}
+
+	const socialInputs = socials.map(item => (
+		<div key={item.id}>
+			<Form.Group controlId={item.name}>
+				<Form.Label>{item.name}</Form.Label>
+				<button style={deleteButtonStyle} className="btn" onClick={e => deleteSource(e, item.id)} href="#">Usuń</button>
+				<input type="number" className="form-control" value={(data[item.name]) ? data[item.name] : item.value } onChange={e => setData(item.name, e.target.value)} />
+			</Form.Group>
+		</div>
+	))
+
+	const dataChart = []
+	dataChart.push(['Social', 'Value'])
+	socials.forEach(item => {
+		dataChart.push([item.name, parseInt(item.value)])
+	})
+
+	console.log(dataChart)
 
 	function handleSubmit (e) {
 		e.preventDefault()
@@ -45,32 +113,22 @@ export default function Index ({ social }) {
 
 	return (
 		<Layout title="Index">
+			<ModalCustom validation={errors} inputs={inputs} />
 			<Form onSubmit={handleSubmit}>
-				<Form.Group controlId="formFacebook">
-					<Form.Label>Facebook</Form.Label>
-					<Form.Control type="number" value={data.facebook} onChange={e => setData('facebook', e.target.value)}/>
-				</Form.Group>
-				<Form.Group controlId="formGoogle">
-					<Form.Label>Google</Form.Label>
-					<Form.Control type="number" value={data.google} onChange={e => setData('google', e.target.value)} />
-				</Form.Group>
-				<Form.Group controlId="formInstagram">
-					<Form.Label>Instagram</Form.Label>
-					<Form.Control type="number" value={data.instagram} onChange={e => setData('instagram', e.target.value)} />
-				</Form.Group>
-				<Form.Group controlId="formTwitter">
-					<Form.Label>Twitter</Form.Label>
-					<Form.Control type="number" value={data.twitter} onChange={e => setData('twitter', e.target.value)} />
-				</Form.Group>
-				<Form.Group controlId="formLinkedin">
-					<Form.Label>Linkedin</Form.Label>
-					<Form.Control type="number" value={data.linkedin} onChange={e => setData('linkedin', e.target.value)} />
-				</Form.Group>
+				{socialInputs}
 				<Button variant="primary" type="submit">
 					Zapisz
 				</Button>
 			</Form>
-			<ChartCustom facebook={data.facebook} google={data.google} instagram={data.instagram} twitter={data.twitter} linkedin={data.linkedin} />
+			<Chart
+				width={'inherit'}
+				height={'400px'}
+				chartType={'PieChart'}
+				loader={<div>Loading Data...</div>}
+				data={dataChart}
+				options={{ title: 'Wykres' }}
+				rootProps={{ 'data-testid': '1' }}
+			/>
 		</Layout>
 	)
 }
